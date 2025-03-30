@@ -1,0 +1,39 @@
+Algoritm pentru extragerea unei zone dintr-o imagine 2D si reprezentarea ei in 3D
+
+exemplificare: din L2_left.png si L2_right.png se va extrage zona care contine semnul de circulatie
+
+Pasul 1: citirea imaginilor si calcularea/afisarea hartilor de disparitate
+	Dupa pasul 1, rezulta o harta de disparitate. (asa cum am vazut in exemple)
+Pasul 2: 
+	Pasul 2.1: Filtrarea disparitatilor intre valoarea 50 si valoarea 55 
+		Obs: valori gasite empiric pt determinarea zonei care contine semnul de circulatie
+	Pasul 2.2: si determinarea unei harti cu valori logice (sa pp ca o numim "imaginea A")
+		Obs: harta cu valori logice inseamna: 1, unde valorile sunt intre 50-55 si 0, in rest
+		Obs2: daca afisam harta logica ar trebui sa vedem doar semnul de circulatie (plus alte zone pe care le vom filtra ulterior)
+Pasul 3: Crearea unei masti care va ajuta in extragerea zonei care contine stalpul
+	Pasul 3.1: Masca va avea valorile: 1, unde avem coordonatele chenarului dreptunghic si 0, in rest
+		Obs: chenarul dreptunghic va fi determinat prin gasirea unor coordonate din imaginea initiala in care am putea incadra
+		obiectul de interes
+		Obs2: sa presupunem ca masca se numeste "imaginea B"
+Pasul 4: imbinarea (dpdv matematic) intre imaginea A si imaginea B => imaginea C
+		Obs: imbinarea insemnand o operatie matematica in urma careia ar trebui sa obtinem intr-o imagine binara valori 
+		de 1 doar acolo unde avem obiectul de interes
+Pasul 5: determinarea liniilor (r) si coloanelor (c) unde imaginea C are valori de 1 (adica unde am obiectul)
+		Obs: aceste valori vor ajuta in implementarea formulelor pt X si Y (din laborator)
+		
+Pasul 6: Implementarea formulelor pt X,Y,Z , pentru recuperarea informatiei in 3D
+		Obs: Vom plota in 3D doar acele puncte pe care le-am determinat anterior prin imaginea C
+		Obs2: cod schita pentru plotare
+			figure;
+			plot3(0,0,0,'*r');grid;hold on
+			for i = 1 : pas_afisare : nr_valori_linii (sau nr_valori_coloane)
+				%nivelul de gri dintr o imagine = val_pixel din imagine/255;
+				gray_level = ...
+				Z = ...;
+				X = ...;
+				Y = ...;
+				
+				plot3(...,...,...,'.','Color',[gray_level gray_level gray_level]);
+				pause(0.001);
+			end
+
