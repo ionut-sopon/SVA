@@ -1,0 +1,110 @@
+clear all; close all;clc
+
+I = imread("1305B.png");
+Ig = rgb2gray(I);
+Ic = imbinarize(Ig, 226/254);
+Ic = imcomplement(Ic);
+
+%%
+% determinam formele si calculam caracteristicile
+% -bwboundarier - returneaza contururile obiectelor
+% - 'noholes' - ignora gaurile din interiorul formelor (doar conturul exterior)
+
+
+% -regionprops - calculeaza caracteristicile geometrice pentru fiecare forma
+% -detectata
+% -centroid - coordonatele (x,y) ale centrului formei
+% -boundingBox - dreptunghiul ce incadreaza forma
+% - eccentricity - cat de alungita este forma
+% - euler-number -numarul de obiecte - gauri
+% - circularity - masura rotunjimii 1= perfect rotund, <1 aproape rotund etc
+% -orientation - unghiul dintre axa orizontala si axa principala
+% -extent - raportul dintre aria formei si aria bounding box-ului, cat de
+% bine umple forma spatiul
+
+[B, L] = bwboundaries(Ic, 'noholes');
+stats = regionprops(L, 'Centroid', 'BoundingBox','Eccentricity', ...
+                    'EulerNumber','Image','Circularity','Orientation','Extent');
+
+figure, imshow(label2rgb(L)), hold on
+
+%%
+% parcurgem fiecare forma si clasificam
+%  extragem initial atributele ssi incepem clasificarea
+
+for k = 1:length(stats)
+    euler = stats(k).EulerNumber;
+    box = stats(k).BoundingBox;
+    center = stats(k).Centroid;
+    ecc = stats(k).Eccentricity;
+    circ = stats(k).Circularity;
+    or = stats(k).Orientation;
+    width = box(3);
+    height = box(4);
+    %aspectRatio
+    ar = width/height;
+    ext = stats(k).Extent;
+
+    % clasificare
+
+    % circ > 0.95 forma este aproape perfect rotunda 
+    % si ar = width/ height - raportul dintre latime
+    % si inaltime este aproape 1 => forma simetrica = cerc
+
+    if circ > 0.95 && abs(ar - 1) < 0.1
+        label = 'Cerc';
+    
+    % circ > 0.85 forma destul de rotunda, dar nu perfecta
+    % => ovala => rotunda, dar alungita => elipsa
+   
+    elseif circ > 0.85
+        label = 'Elipsa';
+
+    % euler = 0 - euler number = nr. gauri
+    % euler = 0 -> forma are o gaura/ euler < 0 are mai mult gauri /
+    % euler > 0 -> forma nu are gauri => triunghi & gaura
+    elseif euler == 0 
+        label = 'triunghi cu gaura';
+     
+    % daca forma orientata este orientata vertical , cu varful in jos ->
+    % triunghi cu varful in jos
+    elseif or == -90
+        label = 'triunghi cu varful in jos';
+
+    % ext < 0.6 -> forma nu umple bine boundingbox-ul, adica este ascutita
+    % ecc 0.3 -> si este putin alungita => triunghi cu vf. in sus
+    elseif ext < 0.6 && ecc > 0.3
+        label = 'triunghi cu varful in sus';
+
+    % ext < 0.5 -> extent mic , adica este mai mult gol in bounding box
+    % decat *umplut* -> stea
+    elseif ext < 0.5 && circ 0.6 
+        label = 'stea';
+
+     % abs(width - height ) < 2 - laturi ap. egale && or ~= 0 -> rotit fata de
+     % axele imaginii => patrat rotit cu x grade
+    elseif abs(width - height) < 2 && or ~= 0
+        label = 'patrat rotit';
+
+     %  abs(width - height) < 2 - ca mai sus, patrat || aproape patrat
+     % orientation = 0 - nu e rotit => patrat neorientat consideram romb
+    elseif or == 0 && abs(width - height) < 2
+        label = 'Romb';
+
+    % ext >= 0.9 -> forma aproape umple bounding box-ul
+    % abs(ar - 1) > 0.2 -> raportul latime/inaltime este semnificativ
+    % diferit de 1
+    % => forma este alungita => dreptunghi
+    elseif ext >= 0.9 && abs(ar - 1) > 0.2
+        label = 'dreptunghi';
+    else
+        label = 'necunoscuta';
+    end
+
+    % afisam forma
+    rectangle('Position', box, 'EdgeColor', 'r', 'LineWidth', 2);
+    text(center(1), center(2), label, 'Color', 'k', ...
+         'FontSize', 10, 'FontWeight', 'bold', 'BackgroundColor', 'white');
+end
+
+saveas(gcf, 'forme_detectate.png')
