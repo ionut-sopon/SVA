@@ -1,3 +1,14 @@
+%% Derivative
+
+time = 0.1:0.1:100;
+signal = [time(1:end/2)*0 (time((end/2 + 1):end)*0)+1];
+subplot(1, 2, 1);
+plot(time, signal);
+subplot(1, 2, 2);
+diffsig = diff(signal);
+plot(time, [0 diffsig]);
+
+
 %% %%%%%%%%%%%%%%%%% APLICATII %%%%%%%%%%%%%%%%%%%%%
 
 %% 4.1
